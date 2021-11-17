@@ -27,6 +27,20 @@ const cardsMenu = document.querySelector(".cards-menu");
 
 let login = localStorage.getItem("gloDelivery");
 
+const getData = async function (url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(
+      `Ошибка по адресу ${url}, статус ошибки ${response.status}!`
+    );
+  }
+  return await response.json();
+};
+
+getData("./db/partners.json").then(function (data) {
+  data.forEach(createCardRestaurant);
+});
+
 function toggleModalAuth() {
   modalAuth.classList.toggle("is-open");
   loginInput.style.borderColor = "";
@@ -105,23 +119,33 @@ function checkAuth() {
 checkAuth();
 
 //day 2
-function createCardRestaurant() {
+function createCardRestaurant(restaurant) {
+  const {
+    image,
+    kitchen,
+    name,
+    price,
+    stars,
+    products,
+    time_of_delivery: timeOfDelivery
+  } = restaurant;
+
   const card = `
-  <a class="card card-restaurant">
+  <a class="card card-restaurant data-products='${products}'">
     <img
-      src="img/pizza-plus/preview.jpg"
+      src="${image}"
       alt="image"
       class="card-image"
     />
     <div class="card-text">
       <div class="card-heading">
-        <h3 class="card-title">Пицца плюс</h3>
-        <span class="card-tag tag">50 мин</span>
+        <h3 class="card-title">${name}</h3>
+        <span class="card-tag tag">${timeOfDelivery} мин</span>
       </div>
       <div class="card-info">
-        <div class="rating">4.5</div>
-        <div class="price">От 900 ₽</div>
-        <div class="category">Пицца</div>
+        <div class="rating">${stars}</div>
+        <div class="price">От ${price} ₽</div>
+        <div class="category">${kitchen}</div>
       </div>
     </div>
   </a>
@@ -129,11 +153,8 @@ function createCardRestaurant() {
   cardsRestaurants.insertAdjacentHTML("beforeend", card);
 }
 
-createCardRestaurant();
-createCardRestaurant();
-createCardRestaurant();
-
-function createCardGood() {
+function createCardGood(goods) {
+  const { description, id, image, name, price } = goods;
   const card = document.createElement("div");
   card.className = "card";
   card.insertAdjacentHTML(
@@ -177,10 +198,9 @@ function openGoods(event) {
       containerPromo.classList.add("hide");
       restaurants.classList.add("hide");
       menu.classList.remove("hide");
-
-      createCardGood();
-      createCardGood();
-      createCardGood();
+      getData(`./db/${restaurant.dataset.products}`).then(function (data) {
+        data.forEach(createCardGood);
+      });
     }
   } else {
     toggleModalAuth();
