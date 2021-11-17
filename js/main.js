@@ -24,6 +24,11 @@ const restaurants = document.querySelector(".restaurants");
 const menu = document.querySelector(".menu");
 const logo = document.querySelector(".logo");
 const cardsMenu = document.querySelector(".cards-menu");
+const restaurantTitle = document.querySelector(".restaurant-title");
+const restaurantRating = document.querySelector(".rating");
+const restaurantPrice = document.querySelector(".price");
+const restaurantCategory = document.querySelector(".category");
+const inputSearch = document.querySelector(".input-search");
 
 let login = localStorage.getItem("gloDelivery");
 
@@ -40,7 +45,6 @@ const getData = async function (url) {
 getData("./db/partners.json").then(function (data) {
   data.forEach(createCardRestaurant);
 });
-
 function toggleModalAuth() {
   modalAuth.classList.toggle("is-open");
   loginInput.style.borderColor = "";
@@ -130,8 +134,12 @@ function createCardRestaurant(restaurant) {
     time_of_delivery: timeOfDelivery
   } = restaurant;
 
+  const cardRestaurant = document.createElement("a");
+  cardRestaurant.className = "card card-restaurant";
+  cardRestaurant.products = products;
+  cardRestaurant.info = { kitchen, name, price, stars };
+
   const card = `
-  <a class="card card-restaurant data-products='${products}'">
     <img
       src="${image}"
       alt="image"
@@ -148,9 +156,9 @@ function createCardRestaurant(restaurant) {
         <div class="category">${kitchen}</div>
       </div>
     </div>
-  </a>
   `;
-  cardsRestaurants.insertAdjacentHTML("beforeend", card);
+  cardRestaurant.insertAdjacentHTML("beforeend", card);
+  cardsRestaurants.insertAdjacentElement("beforeend", cardRestaurant);
 }
 
 function createCardGood(goods) {
@@ -161,18 +169,17 @@ function createCardGood(goods) {
     "beforeend",
     `
     <img
-      src="img/pizza-plus/pizza-classic.jpg"
-      alt="image"
+      src=${image}
+      alt=${name}
       class="card-image"
     />
     <div class="card-text">
       <div class="card-heading">
-        <h3 class="card-title card-title-reg">Пицца Классика</h3>
+        <h3 class="card-title card-title-reg">${name}</h3>
       </div>
       <div class="card-info">
         <div class="ingredients">
-          Соус томатный, сыр «Моцарелла», сыр «Пармезан», ветчина,
-          салями, грибы.
+          ${description}
         </div>
       </div>
       <div class="card-buttons">
@@ -180,7 +187,7 @@ function createCardGood(goods) {
           <span class="button-card-text">В корзину</span>
           <span class="button-cart-svg"></span>
         </button>
-        <strong class="card-price-bold">510 ₽</strong>
+        <strong class="card-price-bold">${price} ₽</strong>
       </div>
     </div>
   `
@@ -198,7 +205,15 @@ function openGoods(event) {
       containerPromo.classList.add("hide");
       restaurants.classList.add("hide");
       menu.classList.remove("hide");
-      getData(`./db/${restaurant.dataset.products}`).then(function (data) {
+
+      const { name, kitchen, price, stars } = restaurant.info;
+
+      restaurantTitle.textContent = name;
+      restaurantRating.textContent = stars;
+      restaurantPrice.textContent = `От ${price} р`;
+      restaurantCategory.textContent = kitchen;
+
+      getData(`./db/${restaurant.products}`).then(function (data) {
         data.forEach(createCardGood);
       });
     }
@@ -226,3 +241,45 @@ function validName(str) {
   const regName = /^[a-zA-Z0-9-_\.]{1,20}$/;
   return regName.test(str);
 }
+
+inputSearch.addEventListener("keypress", function (event) {
+  if (event.charCode === 13) {
+    const value = event.target.value.trim();
+    if (!value) {
+      event.target.style.backgroundColor = "red";
+      event.target.value = "";
+      setTimeout(function () {
+        event.target.style.backgroundColor = "";
+      }, 1500);
+      return;
+    }
+    getData("./db/partners.json")
+      .then(function (data) {
+        return data.map(function (partner) {
+          return partner.products;
+        });
+      })
+      .then(function (linksProduct) {
+        cardsMenu.textContent = "";
+
+        linksProduct.forEach(function (link) {
+          getData(`./db/${link}`).then(function (data) {
+            const resultSearch = data.filter(function (item) {
+              const name = item.name.toLowerCase();
+              return name.includes(value.toLowerCase());
+            });
+
+            containerPromo.classList.add("hide");
+            restaurants.classList.add("hide");
+            menu.classList.remove("hide");
+
+            restaurantTitle.textContent = "Результат поиска";
+            restaurantRating.textContent = "";
+            restaurantPrice.textContent = ``;
+            restaurantCategory.textContent = "разная кухня";
+            resultSearch.forEach(createCardGood);
+          });
+        });
+      });
+  }
+});
