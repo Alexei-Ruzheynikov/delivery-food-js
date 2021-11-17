@@ -10,3 +10,5 @@ const restaurant = target.closest(".card-restaurant");
 closest - всплытие событий, при клике на дочерний элемент, closest - всплывает до нужного класса .card-restaurant и засчитывая клик возвращает true
 
 Добавлять HTML лучше с помощью insertAdjacentHTML
+
+Простой плагин слайдера на js https://pawelgrzybek.github.io/siema/

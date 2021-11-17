@@ -68,7 +68,7 @@ function notAuthorized() {
 
   function logIn(event) {
     event.preventDefault();
-    if (loginInput.value.trim()) {
+    if (validName(loginInput.value.trim())) {
       login = loginInput.value;
       localStorage.setItem("gloDelivery", login);
       toggleModalAuth();
@@ -169,16 +169,21 @@ function createCardGood() {
 
 function openGoods(event) {
   const target = event.target;
-  const restaurant = target.closest(".card-restaurant");
-  if (restaurant) {
-    cardsMenu.textContent = "";
-    containerPromo.classList.add("hide");
-    restaurants.classList.add("hide");
-    menu.classList.remove("hide");
 
-    createCardGood();
-    createCardGood();
-    createCardGood();
+  if (login) {
+    const restaurant = target.closest(".card-restaurant");
+    if (restaurant) {
+      cardsMenu.textContent = "";
+      containerPromo.classList.add("hide");
+      restaurants.classList.add("hide");
+      menu.classList.remove("hide");
+
+      createCardGood();
+      createCardGood();
+      createCardGood();
+    }
+  } else {
+    toggleModalAuth();
   }
 }
 
@@ -188,3 +193,16 @@ logo.addEventListener("click", function () {
   restaurants.classList.remove("hide");
   menu.classList.add("hide");
 });
+
+//Slider
+new Swiper(".swiper", {
+  sliderPerVie: 1,
+  loop: true,
+  autoplay: true
+  // effect: "flip"
+});
+
+function validName(str) {
+  const regName = /^[a-zA-Z0-9-_\.]{1,20}$/;
+  return regName.test(str);
+}
